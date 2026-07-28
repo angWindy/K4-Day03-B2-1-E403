@@ -12,6 +12,9 @@ Nơi khai báo tất cả các "món đồ nghề" mà ReAct Agent có thể g�
 cho REACT_SYSTEM_PROMPT ở Mốc 3, và để Role 5 tra cứu khi phân tích Trace Log).
 """
 
+import re
+
+
 def analyze_personality(description: str) -> str:
     """
     Phân tích mô tả về người nhận quà để suy ra nhóm sở thích/tính cách chính.
@@ -39,18 +42,20 @@ def analyze_personality(description: str) -> str:
         return f"LỖI: Không đủ dữ liệu để phân tích tính cách từ mô tả '{description}'."
 
 
-def search_gift_catalog(interest: str, budget: int, occasion: str = "") -> str:
+def search_gift_catalog(
+    interest: str, budget: int | None = None, occasion: str = ""
+) -> str:
     """
     Tra cứu danh sách quà tặng phù hợp theo nhóm sở thích và ngân sách.
 
     Args:
         interest (str): Nhóm sở thích (Ví dụ: 'công nghệ', 'sáng tạo') - lấy từ analyze_personality
-        budget (int): Ngân sách tối đa (VNĐ)
+        budget (int | None): Ngân sách tối đa (VNĐ). Không bắt buộc.
         occasion (str): Dịp tặng quà (Ví dụ: 'Sinh nhật', 'Valentine') - không bắt buộc
 
     Returns:
-        str: Danh sách quà tặng gợi ý kèm giá, hoặc chuỗi "LỖI: ..." nếu không tìm được
-             danh mục khớp hoặc không có quà nào trong ngân sách.
+        str: Danh sách quà tặng gợi ý kèm giá. Nếu không có budget, trả toàn bộ quà
+             trong nhóm sở thích; trả "LỖI: ..." nếu không tìm được kết quả phù hợp.
 
     Ví dụ gọi (định dạng ReAct): search_gift_catalog['công nghệ', 500000, 'Sinh nhật']
     """
@@ -63,7 +68,11 @@ def search_gift_catalog(interest: str, budget: int, occasion: str = "") -> str:
     options = catalog.get(interest.lower().strip())
     if not options:
         return f"LỖI: Không tìm thấy danh mục quà phù hợp với sở thích '{interest}'."
-    matched = [f"{name} - {price:,} VNĐ" for name, price in options if price <= budget]
+    matched = [
+        f"{name} - {price:,} VNĐ"
+        for name, price in options
+        if budget is None or price <= budget
+    ]
     if not matched:
         cheapest = min(options, key=lambda x: x[1])
         return (f"LỖI: Không có quà nào trong ngân sách {budget:,} VNĐ. "
@@ -71,8 +80,15 @@ def search_gift_catalog(interest: str, budget: int, occasion: str = "") -> str:
     return f"Gợi ý quà cho dịp {occasion or 'chung'}:\n" + "\n".join(matched)
 
 
-def analyze_personality(description: str) -> str:
+def get_occasion(description: str) -> str:
     """
+    Phân tích mô tả để xác định dịp tặng quà.
+
+    Args:
+        description (str): Mô tả ngắn về dịp tặng quà
+
+    Returns:
+        str: Dịp tặng quà được xác định, hoặc chuỗi "LỖI: ..." nếu không xác định được.
     """
     desc_lower = description.lower()
     if "sinh nhật" in desc_lower:
@@ -110,12 +126,38 @@ def get_occasion_tips(occasion: str) -> str:
         return f"LỖI: Chưa có gợi ý cho dịp '{occasion}'. Các dịp hỗ trợ: {', '.join(tips.keys())}."
     return tip
 
+def get_budget(description: str) -> int:
+    """
+    Trích xuất ngân sách là số tự nhiên từ chuỗi mô tả.
+
+    Args:
+        description (str): Chuỗi chứa ngân sách, ví dụ "300k" hoặc "500.000 VNĐ".
+
+    Returns:
+        int: Ngân sách theo đơn vị VNĐ.
+    """
+    match = re.search(
+        r"(\d+(?:[.,]\d{3})*)\s*(k|nghìn|ngàn|tr|triệu)?",
+        description.lower(),
+    )
+    if not match:
+        return None
+
+    budget = int(match.group(1).replace(".", "").replace(",", ""))
+    unit = match.group(2)
+    if unit in {"k", "nghìn", "ngàn"}:
+        budget *= 1_000
+    elif unit in {"tr", "triệu"}:
+        budget *= 1_000_000
+    return budget
+
 
 # Danh sách các tool được đăng ký để Agent sử dụng
 AVAILABLE_TOOLS = {
     "analyze_personality": analyze_personality,
     "search_gift_catalog": search_gift_catalog,
     "get_occasion_tips": get_occasion_tips,
+    "get_budget": get_budget,
 }
 
 
@@ -134,7 +176,7 @@ TOOL_SPECS = [
         "description": "Tra cứu danh sách quà tặng phù hợp theo nhóm sở thích, ngân sách tối đa và dịp tặng.",
         "params": {
             "interest": "str - Nhóm sở thích, thường lấy từ kết quả analyze_personality",
-            "budget": "int - Ngân sách tối đa (VNĐ)",
+            "budget": "int | None - Ngân sách tối đa (VNĐ), không bắt buộc",
             "occasion": "str - Dịp tặng quà (không bắt buộc, có thể để trống)",
         },
         "example": "search_gift_catalog['công nghệ', 500000, 'Sinh nhật']",

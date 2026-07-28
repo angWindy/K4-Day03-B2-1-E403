@@ -22,6 +22,8 @@ if sys.stdout.encoding != "utf-8":
 from tools import (
     AVAILABLE_TOOLS,
     analyze_personality,
+    get_budget,
+    get_occasion,
     get_occasion_tips,
     search_gift_catalog,
 )
@@ -76,17 +78,17 @@ def run_react_agent(user_query: str, provider):
 
         elif step == 2:
             print("🧠 Thought: Cần lấy mẹo tặng quà cho dịp Kỷ niệm.")
-            print("🛠️ Action: get_occasion_tips['kỷ niệm']")
-            occasion = 
+            print("🛠️ Action: get_occasion_tips[get_occasion(user_query)]")
+            occasion = get_occasion(user_query)
             tip = get_occasion_tips(occasion)
             print(f"👁️ Observation: {tip}")
 
         elif step == 3:
-            print("🧠 Thought: Cần tìm quà đúng sở thích và ngân sách 500.000 VNĐ.")
+            print("🧠 Thought: Cần tìm quà đúng với sở thích và ngân sách.")
             print(
-                f"🛠️ Action: search_gift_catalog['{interest}', 500000, 'kỷ niệm']"
+                f"🛠️ Action: search_gift_catalog['{interest}', get_budget(user_query), '{occasion}']"
             )
-            gifts = search_gift_catalog(interest, 500000, "kỷ niệm")
+            gifts = search_gift_catalog(interest, get_budget(user_query), occasion)
             print(f"👁️ Observation: {gifts}")
             print("\n🧠 Thought: Tôi đã có đủ thông tin để trả lời.")
             print(f"🏁 Final Answer: {gifts}\nMẹo tặng quà: {tip}")
@@ -117,7 +119,7 @@ if __name__ == "__main__":
     print(f"✅ Đã tải thành công {len(tests)} Test Cases từ config/test_cases.json\n")
 
     # Chạy thử câu test số 3
-    sample_query = tests[2].get("question", tests[2].get("input", ""))
+    sample_query = tests[1].get("question", tests[1].get("input", ""))
 
     print("--- DEMO 1: CHẠY TRÊN CHATBOT BASELINE ---")
     run_baseline_chatbot(sample_query, provider)
