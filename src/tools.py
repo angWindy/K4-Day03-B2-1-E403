@@ -7,6 +7,9 @@ Nơi khai báo tất cả các "món đồ nghề" mà ReAct Agent có thể g�
 1. analyze_personality  -> Suy ra nhóm sở thích/tính cách từ mô tả người nhận quà.
 2. search_gift_catalog   -> Tra cứu danh sách quà phù hợp theo sở thích + ngân sách + dịp tặng.
 3. get_occasion_tips     -> Gợi ý lưu ý/mẹo chọn quà theo dịp tặng cụ thể.
+
+📍 MỐC 2: Tool Specs chuẩn hóa -> xem TOOL_SPECS ở cuối file (dùng để mô tả tool
+cho REACT_SYSTEM_PROMPT ở Mốc 3, và để Role 5 tra cứu khi phân tích Trace Log).
 """
 
 def analyze_personality(description: str) -> str:
@@ -17,7 +20,11 @@ def analyze_personality(description: str) -> str:
         description (str): Mô tả ngắn về người nhận (Ví dụ: 'thích công nghệ, hướng nội, hay đọc sách')
 
     Returns:
-        str: Nhóm sở thích được suy ra, dùng làm đầu vào cho search_gift_catalog
+        str: Nhóm sở thích được suy ra ('công nghệ' | 'tri thức' | 'thể thao' | 'sáng tạo'),
+             dùng làm tham số interest cho search_gift_catalog. Trả về chuỗi "LỖI: ..." nếu
+             mô tả quá mơ hồ để suy luận.
+
+    Ví dụ gọi (định dạng ReAct): analyze_personality['thích đọc sách, hướng nội']
     """
     desc_lower = description.lower()
     if "công nghệ" in desc_lower or "gadget" in desc_lower:
@@ -42,7 +49,10 @@ def search_gift_catalog(interest: str, budget: int, occasion: str = "") -> str:
         occasion (str): Dịp tặng quà (Ví dụ: 'Sinh nhật', 'Valentine') - không bắt buộc
 
     Returns:
-        str: Danh sách quà tặng gợi ý kèm giá, hoặc thông báo lỗi nếu không phù hợp
+        str: Danh sách quà tặng gợi ý kèm giá, hoặc chuỗi "LỖI: ..." nếu không tìm được
+             danh mục khớp hoặc không có quà nào trong ngân sách.
+
+    Ví dụ gọi (định dạng ReAct): search_gift_catalog['công nghệ', 500000, 'Sinh nhật']
     """
     catalog = {
         "công nghệ": [("Tai nghe Bluetooth", 500000), ("Sạc dự phòng", 300000), ("Đồng hồ thông minh", 1500000)],
@@ -69,7 +79,10 @@ def get_occasion_tips(occasion: str) -> str:
         occasion (str): Dịp tặng quà (Ví dụ: 'Sinh nhật', 'Valentine', 'Kỷ niệm')
 
     Returns:
-        str: Mẹo chọn quà phù hợp dịp, hoặc thông báo lỗi nếu dịp không được hỗ trợ
+        str: Mẹo chọn quà phù hợp dịp, hoặc chuỗi "LỖI: ..." kèm danh sách dịp được hỗ trợ
+             nếu dịp tặng không nằm trong danh sách.
+
+    Ví dụ gọi (định dạng ReAct): get_occasion_tips['Sinh nhật']
     """
     tips = {
         "sinh nhật": "Nên ưu tiên món quà cá nhân hóa, gắn với sở thích riêng của người nhận.",
@@ -89,3 +102,33 @@ AVAILABLE_TOOLS = {
     "search_gift_catalog": search_gift_catalog,
     "get_occasion_tips": get_occasion_tips,
 }
+
+
+# 📍 MỐC 2: TOOL SPECS CHUẨN HÓA (dùng để mô tả tool trong REACT_SYSTEM_PROMPT ở Mốc 3)
+TOOL_SPECS = [
+    {
+        "name": "analyze_personality",
+        "signature": "analyze_personality[description]",
+        "description": "Suy ra nhóm sở thích chính của người nhận quà từ một đoạn mô tả tự do.",
+        "params": {"description": "str - Mô tả ngắn về người nhận quà"},
+        "example": "analyze_personality['thích đọc sách, hướng nội']",
+    },
+    {
+        "name": "search_gift_catalog",
+        "signature": "search_gift_catalog[interest, budget, occasion]",
+        "description": "Tra cứu danh sách quà tặng phù hợp theo nhóm sở thích, ngân sách tối đa và dịp tặng.",
+        "params": {
+            "interest": "str - Nhóm sở thích, thường lấy từ kết quả analyze_personality",
+            "budget": "int - Ngân sách tối đa (VNĐ)",
+            "occasion": "str - Dịp tặng quà (không bắt buộc, có thể để trống)",
+        },
+        "example": "search_gift_catalog['công nghệ', 500000, 'Sinh nhật']",
+    },
+    {
+        "name": "get_occasion_tips",
+        "signature": "get_occasion_tips[occasion]",
+        "description": "Gợi ý mẹo/lưu ý khi chọn quà theo một dịp tặng cụ thể.",
+        "params": {"occasion": "str - Dịp tặng quà (Ví dụ: 'Sinh nhật', 'Valentine')"},
+        "example": "get_occasion_tips['Sinh nhật']",
+    },
+]
