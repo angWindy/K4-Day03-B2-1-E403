@@ -1,49 +1,91 @@
 """
 🛠️ TOOL REGISTRY & SCHEMAS (Dành cho Role 2: Tool & Spec Engineer)
+Chủ đề: Trợ Lý Nắm Bắt Tính Cách & Chọn Quà Tặng Phù Hợp
 Nơi khai báo tất cả các "món đồ nghề" mà ReAct Agent có thể gọi.
+
+📍 MỐC 1: Liệt kê tên các công cụ (Tool List)
+1. analyze_personality  -> Suy ra nhóm sở thích/tính cách từ mô tả người nhận quà.
+2. search_gift_catalog   -> Tra cứu danh sách quà phù hợp theo sở thích + ngân sách + dịp tặng.
+3. get_occasion_tips     -> Gợi ý lưu ý/mẹo chọn quà theo dịp tặng cụ thể.
 """
 
-def get_weather(location: str) -> str:
+def analyze_personality(description: str) -> str:
     """
-    Tra cứu thời tiết hiện tại của một thành phố.
-    
+    Phân tích mô tả về người nhận quà để suy ra nhóm sở thích/tính cách chính.
+
     Args:
-        location (str): Tên thành phố (Ví dụ: 'Hà Nội', 'TP.HCM', 'Đà Nẵng')
-        
+        description (str): Mô tả ngắn về người nhận (Ví dụ: 'thích công nghệ, hướng nội, hay đọc sách')
+
     Returns:
-        str: Thông tin thời tiết chi tiết
+        str: Nhóm sở thích được suy ra, dùng làm đầu vào cho search_gift_catalog
     """
-    loc_lower = location.lower()
-    if "hà nội" in loc_lower or "ha noi" in loc_lower:
-        return "Thời tiết Hà Nội: 28°C, Nắng nhẹ, Độ ẩm 65%."
-    elif "hồ chí minh" in loc_lower or "tp.hcm" in loc_lower or "hcm" in loc_lower:
-        return "Thời tiết TP.HCM: 33°C, Nắng nóng, Có mây."
-    elif "đà nẵng" in loc_lower or "da nang" in loc_lower:
-        return "Thời tiết Đà Nẵng: 30°C, Gió nhẹ, Mát mẻ."
+    desc_lower = description.lower()
+    if "công nghệ" in desc_lower or "gadget" in desc_lower:
+        return "công nghệ"
+    elif "sách" in desc_lower or "đọc" in desc_lower:
+        return "tri thức"
+    elif "thể thao" in desc_lower or "gym" in desc_lower or "sức khỏe" in desc_lower:
+        return "thể thao"
+    elif "nghệ thuật" in desc_lower or "vẽ" in desc_lower or "sáng tạo" in desc_lower:
+        return "sáng tạo"
     else:
-        return f"LỖI: Không tìm thấy dữ liệu thời tiết cho địa điểm '{location}'."
+        return f"LỖI: Không đủ dữ liệu để phân tích tính cách từ mô tả '{description}'."
 
 
-def search_flights(origin: str, destination: str) -> str:
+def search_gift_catalog(interest: str, budget: int, occasion: str = "") -> str:
     """
-    Tra cứu chuyến bay giữa hai địa điểm.
-    
+    Tra cứu danh sách quà tặng phù hợp theo nhóm sở thích và ngân sách.
+
     Args:
-        origin (str): Nơi đi (Ví dụ: 'TP.HCM')
-        destination (str): Nơi đến (Ví dụ: 'Hà Nội')
-        
+        interest (str): Nhóm sở thích (Ví dụ: 'công nghệ', 'sáng tạo') - lấy từ analyze_personality
+        budget (int): Ngân sách tối đa (VNĐ)
+        occasion (str): Dịp tặng quà (Ví dụ: 'Sinh nhật', 'Valentine') - không bắt buộc
+
     Returns:
-        str: Danh sách chuyến bay khả dụng và giá vé
+        str: Danh sách quà tặng gợi ý kèm giá, hoặc thông báo lỗi nếu không phù hợp
     """
-    return (
-        f"Chuyến bay từ {origin} -> {destination} ngày mai:\n"
-        f"1. VN123 (08:00) - Giá: 1,500,000 VNĐ (Còn vé)\n"
-        f"2. VJ456 (14:30) - Giá: 1,200,000 VNĐ (Còn vé)"
-    )
+    catalog = {
+        "công nghệ": [("Tai nghe Bluetooth", 500000), ("Sạc dự phòng", 300000), ("Đồng hồ thông minh", 1500000)],
+        "tri thức": [("Sách bán chạy", 150000), ("Voucher nhà sách", 200000), ("Máy đọc sách", 2500000)],
+        "thể thao": [("Bình giữ nhiệt thể thao", 250000), ("Thảm tập yoga", 350000)],
+        "sáng tạo": [("Bộ màu vẽ cao cấp", 400000), ("Khóa học vẽ online", 600000)],
+    }
+    options = catalog.get(interest.lower().strip())
+    if not options:
+        return f"LỖI: Không tìm thấy danh mục quà phù hợp với sở thích '{interest}'."
+    matched = [f"{name} - {price:,} VNĐ" for name, price in options if price <= budget]
+    if not matched:
+        cheapest = min(options, key=lambda x: x[1])
+        return (f"LỖI: Không có quà nào trong ngân sách {budget:,} VNĐ. "
+                f"Quà rẻ nhất thuộc nhóm này là '{cheapest[0]}' giá {cheapest[1]:,} VNĐ.")
+    return f"Gợi ý quà cho dịp {occasion or 'chung'}:\n" + "\n".join(matched)
+
+
+def get_occasion_tips(occasion: str) -> str:
+    """
+    Gợi ý lưu ý/mẹo khi chọn quà theo dịp tặng cụ thể.
+
+    Args:
+        occasion (str): Dịp tặng quà (Ví dụ: 'Sinh nhật', 'Valentine', 'Kỷ niệm')
+
+    Returns:
+        str: Mẹo chọn quà phù hợp dịp, hoặc thông báo lỗi nếu dịp không được hỗ trợ
+    """
+    tips = {
+        "sinh nhật": "Nên ưu tiên món quà cá nhân hóa, gắn với sở thích riêng của người nhận.",
+        "valentine": "Nên chọn quà mang tính lãng mạn, tinh tế hơn là thực dụng.",
+        "kỷ niệm": "Nên chọn quà có giá trị lưu giữ lâu dài, tránh đồ dùng một lần.",
+        "tốt nghiệp": "Nên chọn quà mang tính khích lệ cho chặng đường tiếp theo (sách, phụ kiện công sở).",
+    }
+    tip = tips.get(occasion.lower().strip())
+    if not tip:
+        return f"LỖI: Chưa có gợi ý cho dịp '{occasion}'. Các dịp hỗ trợ: {', '.join(tips.keys())}."
+    return tip
 
 
 # Danh sách các tool được đăng ký để Agent sử dụng
 AVAILABLE_TOOLS = {
-    "get_weather": get_weather,
-    "search_flights": search_flights,
+    "analyze_personality": analyze_personality,
+    "search_gift_catalog": search_gift_catalog,
+    "get_occasion_tips": get_occasion_tips,
 }
