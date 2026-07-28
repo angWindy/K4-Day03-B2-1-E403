@@ -71,6 +71,21 @@ def search_gift_catalog(interest: str, budget: int, occasion: str = "") -> str:
     return f"Gợi ý quà cho dịp {occasion or 'chung'}:\n" + "\n".join(matched)
 
 
+def analyze_personality(description: str) -> str:
+    """
+    """
+    desc_lower = description.lower()
+    if "sinh nhật" in desc_lower:
+        return "sinh nhật"
+    elif "valentine" in desc_lower:
+        return "valentine"
+    elif "kỷ niệm" in desc_lower :
+        return "kỷ niệm"
+    elif "tốt nghiệp" in desc_lower:
+        return "tốt nghiệp"
+    else:
+        return f"LỖI: Không đủ dữ liệu để phân tích dịp lễ từ mô tả '{description}'."
+
 def get_occasion_tips(occasion: str) -> str:
     """
     Gợi ý lưu ý/mẹo khi chọn quà theo dịp tặng cụ thể.
