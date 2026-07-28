@@ -1,0 +1,45 @@
+flowchart TD
+    %% Styling / Định dạng màu sắc sơ đồ
+    classDef startStyle fill:#2b5c8f,color:#fff,stroke:#1d3e61,stroke-width:2px;
+    classDef routerStyle fill:#f39c12,color:#fff,stroke:#d35400,stroke-width:2px;
+    classDef chatbotStyle fill:#27ae60,color:#fff,stroke:#1e8449,stroke-width:2px;
+    classDef agentStyle fill:#8e44ad,color:#fff,stroke:#6c3483,stroke-width:2px;
+    classDef endStyle fill:#34495e,color:#fff,stroke:#2c3e50,stroke-width:2px;
+
+    %% Nút bắt đầu
+    Start([👤 Người Dùng Nhập Câu Hỏi]):::startStyle --> Router{🔍 Routing & Guardrail Layer<br/>Phân Loại & Kiểm Tra An Toàn}:::routerStyle
+
+    %% Luồng 1: An Toàn & Phân Loại
+    Router -- "1. Bẫy / Vi phạm an toàn<br/>(Chất cấm, độc hại, prompt injection)" --> SafetyBlock[🛡️ Trigger Guardrail Block<br/>Từ chối an toàn & Cảnh báo]:::endStyle
+    
+    Router -- "2. Câu hỏi đơn giản / Căn bản<br/>(Hỏi mẹo chung, tư vấn đơn bước)" --> ChatbotPath:::chatbotStyle
+    
+    Router -- "3. Câu hỏi phức tạp<br/>(Cần phân tích tâm lý, lọc giá CSDL, multi-tool)" --> AgentPath:::agentStyle
+
+    %% LUỒNG CHATBOT PATH (Đường ngắn, tiết kiệm chi phí)
+    subgraph ChatbotPath [🟢 Chatbot Path - Chạy Nhanh / Tiết Kiệm]
+        CB1[LLM Direct Prompting<br/>Không gọi Tool / CSDL] --> CB2[Tạo phản hồi tư vấn chung]
+    end
+
+    %% LUỒNG REACT AGENT PATH (Luồng suy luận đa bước)
+    subgraph AgentPath [🟣 ReAct Agent Path - Suy Luận Đa Bước]
+        direction TB
+        AG1[🧠 Thought: Phân tích intent & thông tin còn thiếu] --> AG2{🛠️ Action: Chọn Tool phù hợp}
+        
+        AG2 -- "Phân tích tâm lý" --> T1[analyze_personality]
+        AG2 -- "Lấy mẹo dịp tặng" --> T2[get_occasion_tips]
+        AG2 -- "Tra CSDL quà & giá" --> T3[search_gift_catalog]
+        
+        T1 --> Obs[👁️ Observation: Nhận kết quả từ Tool]
+        T2 --> Obs
+        T3 --> Obs
+        
+        Obs --> AG3{Đã đủ dữ liệu chưa?}
+        AG3 -- "Chưa đủ / Tool báo LỖI" --> AG1
+        AG3 -- "Đã đủ thông tin" --> AG4[🏁 Final Answer Generation]
+    end
+
+    %% Đầu ra tổng hợp
+    SafetyBlock --> FinalOutput([💬 Xuất Phản Hồi Cho Người Dùng]):::endStyle
+    CB2 --> FinalOutput
+    AG4 --> FinalOutput
