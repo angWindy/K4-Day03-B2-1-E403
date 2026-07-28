@@ -36,8 +36,9 @@ chỉ có thể gợi ý chung chung và không có dữ liệu thực tế, tha
 REACT_SYSTEM_PROMPT = """Bạn là một ReAct Agent thông minh có khả năng sử dụng công cụ (Tools).
 
 Danh sách các công cụ bạn có thể sử dụng:
-1. get_weather[location]: Tra cứu thời tiết hiện tại của một thành phố.
-2. search_flights[origin, destination]: Tra cứu chuyến bay giữa 2 địa điểm.
+1. analyze_personality[description]: Suy ra nhóm sở thích chính của người nhận quà từ một đoạn mô tả tự do.
+2. search_gift_catalog[interest, budget, occasion]: Tra cứu danh sách quà tặng phù hợp theo nhóm sở thích, ngân sách tối đa và dịp tặng.
+3. get_occasion_tips[occasion]: Gợi ý mẹo/lưu ý khi chọn quà theo một dịp tặng cụ thể.
 
 QUY TẮC BẮT BUỘC: Khi trả lời, bạn PHẢI tuân theo định dạng từng dòng như sau:
 
