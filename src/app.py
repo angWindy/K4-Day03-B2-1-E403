@@ -70,14 +70,15 @@ def run_react_agent(user_query: str, provider):
 
         if step == 1:
             print("🧠 Thought: Cần phân tích sở thích của người nhận quà.")
-            print("🛠️ Action: analyze_personality['thích vẽ tranh và sáng tạo nội dung']")
-            interest = analyze_personality("thích vẽ tranh và sáng tạo nội dung")
+            print(f"🛠️ Action: analyze_personality[f\"{user_query}\"]")
+            interest = analyze_personality(user_query)
             print(f"👁️ Observation: {interest}")
 
         elif step == 2:
             print("🧠 Thought: Cần lấy mẹo tặng quà cho dịp Kỷ niệm.")
             print("🛠️ Action: get_occasion_tips['kỷ niệm']")
-            tip = get_occasion_tips("kỷ niệm")
+            occasion = 
+            tip = get_occasion_tips(occasion)
             print(f"👁️ Observation: {tip}")
 
         elif step == 3:
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     print(f"✅ Đã tải thành công {len(tests)} Test Cases từ config/test_cases.json\n")
 
     # Chạy thử câu test số 3
-    sample_query = tests[4].get("question", tests[4].get("input", ""))
+    sample_query = tests[2].get("question", tests[2].get("input", ""))
 
     print("--- DEMO 1: CHẠY TRÊN CHATBOT BASELINE ---")
     run_baseline_chatbot(sample_query, provider)
