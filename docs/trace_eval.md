@@ -1,17 +1,18 @@
 # 📊 BÁO CÁO GIÁM SÁT & ĐÁNH GIÁ (OBSERVABILITY TRACE LOGS)
 *Dành cho Role 5: Observability & Reviewer*
-
+      
 ---
-
+   Tên đề tài:Trợ Lý Nắm Bắt Tính Cách & Chọn Quà Tặng Phù Hợp
 ## 🎯 1. BẢNG CHẤM ĐIỂM AGENTIC FIT (SCORING MATRIX)
 
-| Tiêu chí | Điểm (1-5) | Lý do đánh giá |
+
+| Tiêu chí | Điểm (1-5) | Lý do |
 | :--- | :---: | :--- |
-| 🧠 **Multi-step Reasoning** | `4/5` | Cần suy luận từ tra cứu thời tiết đến chọn trang phục. |
-| 🛠️ **Tool Interaction** | `5/5` | Cần tra cứu dữ liệu thời gian thực qua API thời tiết/chuyến bay. |
-| 🔀 **Dynamic Decision** | `4/5` | Kết quả bước trước quyết định hành động bước sau. |
-| ⏳ **Long Horizon** | `3/5` | Quy trình gồm 2-3 bước xử lý ngắn. |
-| **TỔNG ĐIỂM FIT** | **16/20** | **KẾT LUẬN: BÀI TOÁN RẤT NÊN DÙNG REACT AGENT!** |
+| **Multi-step Reasoning** | **5** | Phải phân tích tâm lý -> xác định nhóm quà -> lọc theo ngân sách. |
+| **Tool Integration** | **4** | Cần tool phân tích tính cách và tool query cơ sở dữ liệu sản phẩm. |
+| **Dynamic Execution Path** | **3** | Tuỳ tính cách và ngân sách mà luồng gọi tool sẽ khác nhau. |
+| **Safety & Guardrails** | **5** | Cần phanh chặn quà tặng vi phạm pháp luật hoặc vượt ngân sách. |
+| **TỔNG ĐIỂM** | **17 / 20** | **Bài toán RẤT PHÙ HỢP để làm ReAct Agent.** |
 
 ---
 
